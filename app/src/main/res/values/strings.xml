@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ScanMe</string>
+    <string name="scanner_button">Wifi and Bluetooth Scanner</string>
+
+    <string-array name="location_array">
+        <item>Location A</item>
+        <item>Location B</item>
+        <item>Location C</item>
+    </string-array>
+
+</resources>
