@@ -15,19 +15,19 @@
         />
 
     <ListView
-        android:id="@+id/wifiList"
+        android:id="@+id/wifi_List"
         android:layout_width="match_parent"
         android:layout_height="400sp">
     </ListView>
 
     <Button
-        android:id="@+id/scanner_button"
+        android:id="@+id/saveToDB_button"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@color/colorPrimary"
-        android:text="@string/scanner_button"
+        android:text="@string/save_to_database"
         android:textAllCaps="false"
         android:textAppearance="@style/TextAppearance.AppCompat.Button"
         android:textColor="@android:color/background_light"
