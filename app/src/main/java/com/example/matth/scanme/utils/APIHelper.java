@@ -1,7 +1,10 @@
 package com.example.matth.scanme.utils;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.matth.scanme.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +15,7 @@ import java.net.URL;
 import java.util.List;
 
 public class APIHelper extends AsyncTask<Void, Void, Void> {
+
 
     private String method = "";
 
@@ -24,6 +28,7 @@ public class APIHelper extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
+
 
         //get json data = parse to array (ap, gp)
         //return list
