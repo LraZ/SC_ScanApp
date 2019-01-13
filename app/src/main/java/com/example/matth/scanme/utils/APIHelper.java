@@ -25,6 +25,11 @@ public class APIHelper extends AsyncTask<Void, Void, Void> {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
+        //get json data = parse to array (ap, gp)
+        //return list
+
         return null;
     }
+
+    //sendData
 }
