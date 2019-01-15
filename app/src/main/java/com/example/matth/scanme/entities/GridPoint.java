@@ -12,6 +12,10 @@ public class GridPoint {
 
     private List<AccessPoint> APs;
 
+    public GridPoint(){
+
+    }
+
     public GridPoint(String GP_ID,Integer X,Integer Y){
         this.Id = GP_ID;
         this.PosX = X;
@@ -57,5 +61,8 @@ public class GridPoint {
         this.APs = APs;
     }
 
-
+    @Override
+    public String toString(){
+        return "ID: " + this.Id;
+    }
 }

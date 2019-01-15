@@ -17,7 +17,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,12 @@ import android.widget.Toast;
 import com.example.matth.scanme.entities.AccessPoint;
 import com.example.matth.scanme.entities.DeviceItem;
 import com.example.matth.scanme.entities.GridPoint;
+import com.example.matth.scanme.service.ScannerAppGetServices;
+import com.example.matth.scanme.utils.APIHelper;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,11 +42,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    ScannerAppGetServices getService;
     private Button SaveMeButton;
     private Spinner spinner;
     private WifiManager wifiManager;
@@ -47,21 +57,27 @@ public class MainActivity extends AppCompatActivity {
     private List<ScanResult> results;
     private ArrayList<String> arrayList = new ArrayList<>();
     private ArrayAdapter wifi_adapter;
-    private ArrayList<String> GridPoints = new ArrayList<>();
+    private List<String> GridPoints;
+    private ArrayList contactList;
 
     private BluetoothAdapter BTAdapter;
     //set to identify the activity request
     public static int REQUEST_BLUETOOTH = 1;
-    private ArrayList <DeviceItem>deviceItemList;
+    private ArrayList<DeviceItem> deviceItemList;
     //private BroadcastReceiver mReceiver;
     //private final BroadcastReceiver mReceiver;
     private BluetoothAdapter mBluetoothAdapter;
+
+    private String TAG = MainActivity.class.getSimpleName();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        contactList = new ArrayList<>();
+        getService = new ScannerAppGetServices();
 
         SaveMeButton = (Button) findViewById(R.id.saveToDB_button);
         SaveMeButton.setOnClickListener(new View.OnClickListener() {
@@ -74,8 +90,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        listView = findViewById(R.id.wifi_List);
+        //new GetContacts().execute();
 
+
+        listView = findViewById(R.id.wifi_List);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         if (!wifiManager.isWifiEnabled()) {
@@ -83,7 +101,11 @@ public class MainActivity extends AppCompatActivity {
             wifiManager.setWifiEnabled(true); //
         }
 
-        wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
+        GridPoints = getService.getGridPoints();
+
+        //new getGridData().execute();
+
+        wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, GridPoints);
         listView.setAdapter(wifi_adapter);
         scanWifi();
         bluetoothScanning();
@@ -130,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void bluetoothScanning(){
+    private void bluetoothScanning() {
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
@@ -158,15 +180,14 @@ public class MainActivity extends AppCompatActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 //Add the name and address to an array adapter to show in a ListView
                 //arrayList.add(device.getClass() + "\n" + device.getAddress());
-                arrayList.add(new AccessPoint(device.getAddress(), 1, true, device.getName(),80).toString());
+                arrayList.add(new AccessPoint(device.getAddress(), 1, true, device.getName(), 80).toString());
             }
         }
 
     };
 
 
-
-    private void scanWifi(){
+    private void scanWifi() {
         //arrayList.clear();
         registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifiManager.startScan();
@@ -209,29 +230,103 @@ public class MainActivity extends AppCompatActivity {
 
 
     //hardcoded method for testing
-    private boolean filterAP(String BSSID){
+    private boolean filterAP(String BSSID) {
 
         if (BSSID.equals("1c:e6:c7:1d:6e:34")) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
 
-    //move to Service package
+    private class getGridData extends AsyncTask<Void, Void, List<String>>{
 
-    private void getGridPoints(){
-        //service, get Grid Points from database, JSON
+        @Override
+        protected List<String> doInBackground(Void... voids) {
+            GridPoints = getService.getGridPoints();
+            return null;
+        }
     }
 
-    private void getAccessPoints(){
-        //service, get Access Points from database, JSON
+}
+
+/*
+    private class GetContacts extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            APIHelper sh = new APIHelper();
+            // Making a request to url and getting response
+            String url = "http://192.168.0.241:9000/api/getAllAccessPoints";
+            String jsonStr = sh.makeServiceCall(url);
+
+            Log.e(TAG, "Response from url: " + jsonStr);
+            if (jsonStr != null) {
+                try {
+                    JSONObject jsonObj = new JSONObject(jsonStr);
+
+                    // Getting JSON Array node
+                    JSONArray contacts = jsonObj.getJSONArray("contacts");
+
+                    // looping through All Contacts
+                    for (int i = 0; i < contacts.length(); i++) {
+                        JSONObject c = contacts.getJSONObject(i);
+                        String mac = c.getString("mac");
+                        String type = c.getString("type");
+                        String activity = c.getString("activity");
+
+                        // tmp hash map for single contact
+                        HashMap<String, String> contact = new HashMap<>();
+
+                        // adding eachild node to HashMap key => value
+                        contact.put("mac", mac);
+                        contact.put("type", type);
+                        contact.put("activity", activity);
+
+                        // adding contact to contact list
+                        GridPoints.add(contact);
+                    }
+                } catch (final JSONException e) {
+                    Log.e(TAG, "Json parsing error: " + e.getMessage());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),
+                                    "Json parsing error: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                }
+
+            } else {
+                Log.e(TAG, "Couldn't get json from server.");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(),
+                                "Couldn't get json from server. Check LogCat for possible errors!",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+        }
     }
 
-    private void assignGPToAPs(GridPoint GP, List<AccessPoint> APs){
-        //service, send date to database, JSON
-    }
     private class FetchData extends AsyncTask<Void, Void, String> {
 
         @Override
@@ -249,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
                 //https://www.salzburg.gv.at/ogd/c8711f5c-a49f-446d-ad69-6435bbc5a78e/names-szg.json
-                //http://192.168.0.101:9000/getaccespoints
+                //http://192.168.0.101:9000/api/getAccesPoints
                 URL url = new URL("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:STATIONENOGD&srsName=EPSG:4326&outputFormat=json");
 
                 // Create the request to OpenWeatherMap, and open the connection
@@ -307,4 +402,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
-
+*/

@@ -10,15 +10,15 @@ public class ScannerAppGetServices {
 
     APIHelper api = new APIHelper();
 
-    public List<GridPoint> getGridPoints(){
-        List<GridPoint> temp = null;
-        api.FetchData("getGrid");
+    public List<String> getGridPoints(){
+        //api.FetchData("getGrid");
+        List<String> temp = api.getGridPoints();
         return temp;
     }
 
     public List<AccessPoint> getAccessPoints(){
         List<AccessPoint> temp = null;
-        api.FetchData("getAccessPoints");
+        //api.FetchData("getAccessPoints");
         return temp;
     }
 }
