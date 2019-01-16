@@ -16,6 +16,10 @@ public class GridPoint {
 
     }
 
+    public GridPoint(String id){
+        this.Id = id;
+    }
+
     public GridPoint(String GP_ID,Integer X,Integer Y){
         this.Id = GP_ID;
         this.PosX = X;
@@ -63,6 +67,6 @@ public class GridPoint {
 
     @Override
     public String toString(){
-        return "ID: " + this.Id;
+        return " Grid Point ID: " + this.Id;
     }
 }

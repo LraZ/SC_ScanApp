@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,20 +19,24 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class APIHelper{
 
-    private GridPoint tempGP = new GridPoint();
-    private AccessPoint tempAP = new AccessPoint();
+    private GridPoint tempGP;
+    private AccessPoint tempAP;
+    private List<AccessPoint> tempAPList;
+    private List<GridPoint> tempGPList;
     private static final String TAG = APIHelper.class.getSimpleName();
 
     public APIHelper() {
     }
 
-    public List<String> getGridPoints(){
-        List<String> temp = null;
+    public List<GridPoint> getGridPoints(){
+        tempGPList = new LinkedList<GridPoint>();
         String URL = "http://192.168.0.233:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
@@ -44,37 +49,39 @@ public class APIHelper{
                 for (int i = 0; i < data.length(); i++) {
                     JSONObject d = data.getJSONObject(i);
                     String id = d.getString("id");
-                    String posX = d.getString("posX");
-                    String posY = d.getString("posY");
-                    tempGP.setId(d.getString("Id"));
-                    tempGP.setPosX(d.getInt("PosX"));
-                    tempGP.setPosY(d.getInt("PosY"));
+                    tempGP = new GridPoint(id);
+                    //String posX = d.getString("posX");
+                    //String posY = d.getString("posY");
+                    //tempGP.setId(d.getString("Id"));
+                    //tempGP.setPosX(d.getInt("PosX"));
+                    //tempGP.setPosY(d.getInt("PosY"));
 
                     // tmp hash map for single contact
                     HashMap<String, String> DataHashMap = new HashMap<>();
 
                     // adding each child node to HashMap key => value
-                    DataHashMap.put("id", id);
-                    DataHashMap.put("posX", posX);
-                    DataHashMap.put("posY", posY);
+                    DataHashMap.put("id", String.valueOf(id));
+                    //DataHashMap.put("posX", posX);
+                    //DataHashMap.put("posY", posY);
 
                     // adding contact to contact list
                     //resultList.add(DataHashMap);
-                    temp.add(tempGP.toString());
+                    String temptext = "Grid Point ID: " + id;
+                    tempGPList.add(tempGP);
                 }
             } catch (final JSONException e) {
                 Log.e(TAG, "Json parsing error: " + e.getMessage());
             }
         }
-        if (temp != null){
-            return temp;
+        if (tempGPList != null){
+            return tempGPList;
         }else {
             return null;
         }
     }
 
-    public List<String> getAccessPoints(){
-        List<String> temp = null;
+    public List<AccessPoint> getAccessPoints(){
+        tempAPList = new LinkedList<AccessPoint>();
         String URL = "http://192.168.0.233:9000/api/getAllAccessPoints";
         String jsonStr = makeServiceCall(URL);
 
@@ -87,41 +94,75 @@ public class APIHelper{
                 for (int i = 0; i < data.length(); i++) {
                     JSONObject d = data.getJSONObject(i);
                     String mac = d.getString("mac");
-                    String type = d.getString("type");
-                    String activity = d.getString("activity");
-                    tempAP.setMAC(d.getString("mac"));
-                    tempAP.setType(d.getInt("type"));
-                    tempAP.setActivity(d.getBoolean("activity"));
+                    Integer type = d.getInt("type");
+                    Boolean activity = d.getBoolean("activity");
+                    tempAP = new AccessPoint(mac,type,activity);
 
                     // tmp hash map for single contact
                     HashMap<String, String> DataHashMap = new HashMap<>();
 
                     // adding each child node to HashMap key => value
                     DataHashMap.put("mac", mac);
-                    DataHashMap.put("type", type);
-                    DataHashMap.put("activity", activity);
+                    DataHashMap.put("type", String.valueOf(type));
+                    DataHashMap.put("activity", String.valueOf(activity));
 
                     // adding contact to contact list
                     //resultList.add(DataHashMap);
-                    temp.add(tempGP.toString());
+                    tempAPList.add(tempAP);
                 }
             } catch (final JSONException e) {
                 Log.e(TAG, "Json parsing error: " + e.getMessage());
             }
         }
-        if (temp != null){
-            return temp;
+        if (tempAPList != null){
+            return tempAPList;
         }else {
             return null;
         }
     }
 
-    public String makeServiceCall(String reqUrl) {
+    public String sendData(String JSONstring) {
+        String data = "";
+        String URL = "http://192.168.0.233:9000/api/getAllAccessPoints";
+        try{
+            URL url = new URL(URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.connect();
+            conn.setDoOutput(true);
+
+            DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+            wr.writeBytes("Data=" + JSONstring);
+            wr.flush();
+            wr.close();
+
+            InputStream in = conn.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(in);
+
+            int inputStreamData = inputStreamReader.read();
+            while (inputStreamData != -1) {
+                char current = (char) inputStreamData;
+                inputStreamData = inputStreamReader.read();
+                data += current;
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return data;
+    }
+
+    private String makeServiceCall(String reqUrl) {
         String response = null;
         try {
             URL url = new URL(reqUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.connect();
             // read the response
             InputStream in = new BufferedInputStream(conn.getInputStream());
             response = convertStreamToString(in);

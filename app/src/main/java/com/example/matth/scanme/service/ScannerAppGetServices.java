@@ -13,7 +13,7 @@ public class ScannerAppGetServices {
     //APIHelper api = new APIHelper(this);
 
     public List<String> getGridPoints(){
-        new APIHelper(this).execute();
+        //new APIHelper(this).execute();
         //List<String> temp = api.
         //return temp;
         return null;

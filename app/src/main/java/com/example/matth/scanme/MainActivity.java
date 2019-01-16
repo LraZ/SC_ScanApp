@@ -43,21 +43,25 @@ import java.net.URL;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private Button SaveMeButton;
-    private Spinner spinner;
-    private WifiManager wifiManager;
     private ListView listView;
-    private int size = 0;
+    private Spinner spinner;
+    private List<String> spinnerArray = new LinkedList<String>();
+
+    private WifiManager wifiManager;
     private List<ScanResult> results;
     private ArrayList<String> arrayList = new ArrayList<>();
     private ArrayAdapter wifi_adapter;
-    private List<String> GridPoints;
-    private ArrayList contactList;
+
+    private List<AccessPoint> APs = new LinkedList<>();
+
+    private String JSONString;
 
     private BluetoothAdapter BTAdapter;
     //set to identify the activity request
@@ -73,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         new getGridData().execute();
-
         SaveMeButton = (Button) findViewById(R.id.saveToDB_button);
         SaveMeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,7 +84,20 @@ public class MainActivity extends AppCompatActivity {
                 arrayList.clear();
                 scanWifi();
                 bluetoothScanning();
+                new getAPData().execute();
 
+                JSONObject postData = new JSONObject();
+                try{
+                    //postData.put("name", name.getText().toString());
+                    postData.put("destination", spinner.getSelectedItemId()+1);
+                    JSONArray arr = generateJSONArray(APs);
+                    postData.put("ReceivedSignals", arr);
+                    JSONString = postData.toString();
+
+                    //new SendGPtoAPs().execute();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -98,11 +114,26 @@ public class MainActivity extends AppCompatActivity {
         //GridPoints = getService.getGridPoints();
         //new getGridData().execute();
 
-        wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, GridPoints);
+        wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
         listView.setAdapter(wifi_adapter);
 
         scanWifi();
         bluetoothScanning();
+    }
+
+    private JSONArray generateJSONArray(List<AccessPoint> ListAP) {
+        JSONArray temp = new JSONArray();
+        try{
+            for (AccessPoint AP : ListAP){
+                JSONObject postData = new JSONObject();
+                postData.put("mac", AP.getMAC());
+                postData.put("power", AP.getSignal());
+                temp.put(postData);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return temp;
     }
 
     private void bluetoothScanning() {
@@ -122,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 //Add the name and address to an array adapter to show in a ListView
                 //arrayList.add(device.getClass() + "\n" + device.getAddress());
+                APs.add(new AccessPoint(device.getAddress(), 1, true, device.getName(), 80));
                 arrayList.add(new AccessPoint(device.getAddress(), 1, true, device.getName(), 80).toString());
             }
         }
@@ -144,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             for (ScanResult scanResult : results) {
                 //if(filterAP(scanResult.BSSID)){
                 //arrayList.add(scanResult.SSID + " - " + scanResult.BSSID + "    " + scanResult.level + " dBm");
+                APs.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level));
                 arrayList.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level).toString());
                 //}
                 wifi_adapter.notifyDataSetChanged();
@@ -178,38 +211,57 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class getGridData extends AsyncTask<Void, Void, List<String>>{
+    private class getGridData extends AsyncTask<Void, Void, List<GridPoint>>{
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
+        protected List<GridPoint> doInBackground(Void... voids) {
             APIHelper api = new APIHelper();
             return api.getGridPoints();
         }
 
-        protected void onPostExecute(List<String> result) {
+        protected void onPostExecute(List<GridPoint> result) {
             super.onPostExecute(result);
-            //get the spinner from the xml.
-            //create an adapter to describe how the items are displayed, adapters are used in several places in android.
-            //There are multiple variations of this, but this is the basic variant.
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, result);
+            //parse object to string
+            for (GridPoint GridPoint : result){
+                spinnerArray.add(GridPoint.toString());
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, spinnerArray);
             //set the spinners adapter to the previously created one.
             spinner.setAdapter(adapter);
             //adapter spinner
         }
     }
 
-    private class getAPData extends AsyncTask<Void, Void, List<String>>{
+    private class getAPData extends AsyncTask<Void, Void, List<AccessPoint>>{
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
+        protected List<AccessPoint> doInBackground(Void... voids) {
             APIHelper api = new APIHelper();
             return api.getAccessPoints();
             //filter here
         }
 
-        protected void onPostExecute(List<String> result) {
+        protected void onPostExecute(List<AccessPoint> result) {
             super.onPostExecute(result);
-            //adapter list
+            //APs = result;
+
+
+            //Toast.makeText(this, APs.size()), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class SendGPtoAPs extends AsyncTask<String, Void, String>{
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            APIHelper api = new APIHelper();
+            return api.sendData(JSONString);
+        }
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            //Toast.makeText(this, "Access Points zu Grid Point hinzugefügt", Toast.LENGTH_SHORT).show();
         }
     }
 }
