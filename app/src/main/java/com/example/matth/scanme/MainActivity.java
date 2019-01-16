@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     postData.put("ReceivedSignals", arr);
                     JSONString = postData.toString();
 
-                    //new SendGPtoAPs().execute();
+                    new SendGPtoAPs().execute();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -175,7 +175,6 @@ public class MainActivity extends AppCompatActivity {
             //need to enable permission to access localization service
             for (ScanResult scanResult : results) {
                 //if(filterAP(scanResult.BSSID)){
-                //arrayList.add(scanResult.SSID + " - " + scanResult.BSSID + "    " + scanResult.level + " dBm");
                 APs.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level));
                 arrayList.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level).toString());
                 //}
@@ -261,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            //Toast.makeText(this, "Access Points zu Grid Point hinzugefügt", Toast.LENGTH_SHORT).show();
+            Log.e("TAG", result);
         }
     }
 }

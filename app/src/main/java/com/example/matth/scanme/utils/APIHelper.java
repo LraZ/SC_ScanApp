@@ -123,28 +123,27 @@ public class APIHelper{
 
     public String sendData(String JSONstring) {
         String data = "";
-        String URL = "http://192.168.0.233:9000/api/getAllAccessPoints";
+        String URL = "http://192.168.0.233:9000/api/getPosition";
         try{
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.connect();
             conn.setDoOutput(true);
+            conn.connect();
+
+
+            JSONstring = "{\"destination\": \"1\", \"ReceivedSignals\":[" +
+                    "{\"mac\": \"84:78:ac:b8:bb:b0\",\"power\": \"81\"" +
+                    "},{\"mac\": \"84:78:ac:b8:d4:80\",\"power\": \"83\"}," +
+                    "{\"mac\": \"84:78:ac:b8:e2:f0\",\"power\": \"20\"" + "}]}";
 
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
             wr.writeBytes("Data=" + JSONstring);
             wr.flush();
             wr.close();
 
-            InputStream in = conn.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(in);
-
-            int inputStreamData = inputStreamReader.read();
-            while (inputStreamData != -1) {
-                char current = (char) inputStreamData;
-                inputStreamData = inputStreamReader.read();
-                data += current;
-            }
+            InputStream in = new BufferedInputStream(conn.getInputStream());
+            data = convertStreamToString(in);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (ProtocolException e) {
