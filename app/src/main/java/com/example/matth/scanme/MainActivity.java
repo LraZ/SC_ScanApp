@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
-
+/*
     private class getGridData extends AsyncTask<Void, Void, List<String>>{
 
         @Override
@@ -247,8 +247,9 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
+*/
 }
+
 
 /*
     private class GetContacts extends AsyncTask<Void, Void, Void> {

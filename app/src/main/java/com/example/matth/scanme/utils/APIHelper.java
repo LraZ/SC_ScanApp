@@ -1,12 +1,13 @@
 package com.example.matth.scanme.utils;
 
-import android.app.ProgressDialog;
+import android.app.Notification;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
+import android.widget.ListAdapter;
+import android.widget.SimpleAdapter;
 
-import com.example.matth.scanme.MainActivity;
 import com.example.matth.scanme.entities.GridPoint;
+import com.example.matth.scanme.service.ScannerAppGetServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,16 +25,30 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-public class APIHelper{
+public class APIHelper extends AsyncTask<Void, Void, List<String>>{
 
     private GridPoint tempGP = new GridPoint();
     private static final String TAG = APIHelper.class.getSimpleName();
+    private static ScannerAppGetServices scannerService;
 
-    public APIHelper() {
+    public APIHelper(ScannerAppGetServices scannerAppGetServices) {
+        scannerService = scannerAppGetServices;
     }
 
+    @Override
+    protected List<String> doInBackground(Void... voids) {
+        return getGridPoints();
+    }
+
+    @Override
+    protected void onPostExecute(List<String> result) {
+        super.onPostExecute(result);
+        scannerService.APIfinished(result);
+    }
+
+
     public List<String> getGridPoints(){
-        List<String> temp = null;
+        List<String> GPoints = null;
         String URL = "http://192.168.0.233:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
@@ -62,15 +77,15 @@ public class APIHelper{
 
                     // adding contact to contact list
                     //resultList.add(DataHashMap);
-                    temp.add(tempGP.toString());
+                    GPoints.add(tempGP.toString());
                 }
             } catch (final JSONException e) {
                 Log.e(TAG, "Json parsing error: " + e.getMessage());
             }
 
         }
-        if (temp != null){
-            return temp;
+        if (GPoints != null){
+            return GPoints;
         }else {
             return null;
         }
