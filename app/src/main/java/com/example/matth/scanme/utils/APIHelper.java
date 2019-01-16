@@ -1,13 +1,9 @@
 package com.example.matth.scanme.utils;
 
-import android.app.Notification;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.ListAdapter;
-import android.widget.SimpleAdapter;
 
+import com.example.matth.scanme.entities.AccessPoint;
 import com.example.matth.scanme.entities.GridPoint;
-import com.example.matth.scanme.service.ScannerAppGetServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,30 +21,17 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 
-public class APIHelper extends AsyncTask<Void, Void, List<String>>{
+public class APIHelper{
 
     private GridPoint tempGP = new GridPoint();
+    private AccessPoint tempAP = new AccessPoint();
     private static final String TAG = APIHelper.class.getSimpleName();
-    private static ScannerAppGetServices scannerService;
 
-    public APIHelper(ScannerAppGetServices scannerAppGetServices) {
-        scannerService = scannerAppGetServices;
+    public APIHelper() {
     }
-
-    @Override
-    protected List<String> doInBackground(Void... voids) {
-        return getGridPoints();
-    }
-
-    @Override
-    protected void onPostExecute(List<String> result) {
-        super.onPostExecute(result);
-        scannerService.APIfinished(result);
-    }
-
 
     public List<String> getGridPoints(){
-        List<String> GPoints = null;
+        List<String> temp = null;
         String URL = "http://192.168.0.233:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
@@ -63,9 +46,9 @@ public class APIHelper extends AsyncTask<Void, Void, List<String>>{
                     String id = d.getString("id");
                     String posX = d.getString("posX");
                     String posY = d.getString("posY");
-                    tempGP.setId(d.getString("id"));
-                    tempGP.setPosX(d.getInt("posX"));
-                    tempGP.setPosY(d.getInt("posY"));
+                    tempGP.setId(d.getString("Id"));
+                    tempGP.setPosX(d.getInt("PosX"));
+                    tempGP.setPosY(d.getInt("PosY"));
 
                     // tmp hash map for single contact
                     HashMap<String, String> DataHashMap = new HashMap<>();
@@ -77,15 +60,57 @@ public class APIHelper extends AsyncTask<Void, Void, List<String>>{
 
                     // adding contact to contact list
                     //resultList.add(DataHashMap);
-                    GPoints.add(tempGP.toString());
+                    temp.add(tempGP.toString());
                 }
             } catch (final JSONException e) {
                 Log.e(TAG, "Json parsing error: " + e.getMessage());
             }
-
         }
-        if (GPoints != null){
-            return GPoints;
+        if (temp != null){
+            return temp;
+        }else {
+            return null;
+        }
+    }
+
+    public List<String> getAccessPoints(){
+        List<String> temp = null;
+        String URL = "http://192.168.0.233:9000/api/getAllAccessPoints";
+        String jsonStr = makeServiceCall(URL);
+
+        if (jsonStr!=null){
+            try{
+                JSONObject jsonObj = new JSONObject(jsonStr);
+                // Getting JSON Array node
+                JSONArray data = jsonObj.getJSONArray("data");
+
+                for (int i = 0; i < data.length(); i++) {
+                    JSONObject d = data.getJSONObject(i);
+                    String mac = d.getString("mac");
+                    String type = d.getString("type");
+                    String activity = d.getString("activity");
+                    tempAP.setMAC(d.getString("mac"));
+                    tempAP.setType(d.getInt("type"));
+                    tempAP.setActivity(d.getBoolean("activity"));
+
+                    // tmp hash map for single contact
+                    HashMap<String, String> DataHashMap = new HashMap<>();
+
+                    // adding each child node to HashMap key => value
+                    DataHashMap.put("mac", mac);
+                    DataHashMap.put("type", type);
+                    DataHashMap.put("activity", activity);
+
+                    // adding contact to contact list
+                    //resultList.add(DataHashMap);
+                    temp.add(tempGP.toString());
+                }
+            } catch (final JSONException e) {
+                Log.e(TAG, "Json parsing error: " + e.getMessage());
+            }
+        }
+        if (temp != null){
+            return temp;
         }else {
             return null;
         }
@@ -130,7 +155,6 @@ public class APIHelper extends AsyncTask<Void, Void, List<String>>{
                 e.printStackTrace();
             }
         }
-
         return sb.toString();
     }
 }

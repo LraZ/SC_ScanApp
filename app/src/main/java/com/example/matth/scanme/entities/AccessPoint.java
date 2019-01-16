@@ -2,46 +2,50 @@ package com.example.matth.scanme.entities;
 
 public class AccessPoint {
 
-    private String MAC;
+    private String mac;
 
-    private Integer Typ;         //wlan or bluetooth ....
+    private Integer type;         //wlan or bluetooth ....
 
-    private Boolean alive;
+    private Boolean activity;
 
     private String description;
 
     private int signal;
 
+    public AccessPoint(){
+
+    }
+
     public AccessPoint(String BSSID, Integer type, boolean status, String desc, Integer signal){
-        this.MAC = BSSID;
-        this.Typ = type;
-        this.alive = status;
+        this.mac = BSSID;
+        this.type = type;
+        this.activity = status;
         this.description = desc;
         this.signal = signal;
     }
 
     public String getMAC() {
-        return MAC;
+        return mac;
     }
 
     public void setMAC(String MAC) {
-        this.MAC = MAC;
+        this.mac = MAC;
     }
 
-    public Integer getTyp() {
-        return Typ;
+    public Integer getType() {
+        return type;
     }
 
-    public void setTyp(Integer typ) {
-        Typ = typ;
+    public void setType(Integer type) {
+        this.type = type;
     }
 
-    public Boolean getAlive() {
-        return alive;
+    public Boolean getActivity() {
+        return activity;
     }
 
-    public void setAlive(Boolean alive) {
-        this.alive = alive;
+    public void setActivity(Boolean activity) {
+        this.activity = activity;
     }
 
     public String getDescription() {
@@ -62,7 +66,7 @@ public class AccessPoint {
 
     @Override
     public String toString(){
-        return (description + " - " + MAC + "    " + signal + " dBm");
+        return (description + " - " + mac + "    " + signal + " dBm");
     }
 
 }

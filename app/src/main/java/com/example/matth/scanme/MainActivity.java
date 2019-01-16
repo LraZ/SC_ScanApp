@@ -48,7 +48,6 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    ScannerAppGetServices getService;
     private Button SaveMeButton;
     private Spinner spinner;
     private WifiManager wifiManager;
@@ -68,16 +67,12 @@ public class MainActivity extends AppCompatActivity {
     //private final BroadcastReceiver mReceiver;
     private BluetoothAdapter mBluetoothAdapter;
 
-    private String TAG = MainActivity.class.getSimpleName();
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        contactList = new ArrayList<>();
-        getService = new ScannerAppGetServices();
+        new getGridData().execute();
 
         SaveMeButton = (Button) findViewById(R.id.saveToDB_button);
         SaveMeButton.setOnClickListener(new View.OnClickListener() {
@@ -92,83 +87,30 @@ public class MainActivity extends AppCompatActivity {
 
         //new GetContacts().execute();
 
-
         listView = findViewById(R.id.wifi_List);
+        spinner = (Spinner) findViewById(R.id.location_spinner);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         if (!wifiManager.isWifiEnabled()) {
             Toast.makeText(this, "WiFi is disabled ... We need to enable it", Toast.LENGTH_LONG).show();
             wifiManager.setWifiEnabled(true); //
         }
-
-        GridPoints = getService.getGridPoints();
-
+        //GridPoints = getService.getGridPoints();
         //new getGridData().execute();
 
         wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, GridPoints);
         listView.setAdapter(wifi_adapter);
+
         scanWifi();
         bluetoothScanning();
-        //new FetchData().execute();
-
-
-        // CursorAdapter if the choices are available from a database query -> https://developer.android.com/guide/topics/ui/controls/spinner#java .array.location_array
-        spinner = (Spinner) findViewById(R.id.location_spinner);
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.location_array, android.R.layout.simple_spinner_item);
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
-
-
-        /*
-        //Bluetooth adapter to interface with Bluetooth
-        BTAdapter = BluetoothAdapter.getDefaultAdapter();
-        //If phone does not support Bluetooth show an alert dialog to the user and exit the app.
-        if (BTAdapter == null) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Not compatible")
-                    .setMessage("Your phone does not support Bluetooth.")
-                    .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            System.exit(0);
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
-        }
-
-        if (!BTAdapter.isEnabled()) {
-            Intent enableBT = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBT, REQUEST_BLUETOOTH);
-        }
-
-        //Log.d("DEVICELIST", "Super called for DeviceListFragment onCreate\n");
-        //deviceItemList = new ArrayList<DeviceItem>();
-        */
-
-
     }
 
     private void bluetoothScanning() {
-
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mBluetoothAdapter.startDiscovery();
     }
-
-
-   /*
-    @Override
-    public void onScanResult(int callbackType, ScanResult scanResult) {
-        super.onScanResult(callbackType, scanResult);
-
-        // Retrieve device name via ScanRecord.
-        String deviceName = scanResult.getScanRecord().getDeviceName();
-    }*/
 
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -185,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     };
-
 
     private void scanWifi() {
         //arrayList.clear();
@@ -211,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     //APScanner Signavio
     /*
     filter registered APs in database
@@ -228,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
     }
     */
 
-
     //hardcoded method for testing
     private boolean filterAP(String BSSID) {
 
@@ -238,169 +177,39 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
-/*
+
     private class getGridData extends AsyncTask<Void, Void, List<String>>{
 
         @Override
         protected List<String> doInBackground(Void... voids) {
-            GridPoints = getService.getGridPoints();
-            return null;
-        }
-    }
-*/
-}
-
-
-/*
-    private class GetContacts extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Toast.makeText(MainActivity.this,"Json Data is downloading",Toast.LENGTH_LONG).show();
-
+            APIHelper api = new APIHelper();
+            return api.getGridPoints();
         }
 
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            APIHelper sh = new APIHelper();
-            // Making a request to url and getting response
-            String url = "http://192.168.0.241:9000/api/getAllAccessPoints";
-            String jsonStr = sh.makeServiceCall(url);
-
-            Log.e(TAG, "Response from url: " + jsonStr);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
-
-                    // Getting JSON Array node
-                    JSONArray contacts = jsonObj.getJSONArray("contacts");
-
-                    // looping through All Contacts
-                    for (int i = 0; i < contacts.length(); i++) {
-                        JSONObject c = contacts.getJSONObject(i);
-                        String mac = c.getString("mac");
-                        String type = c.getString("type");
-                        String activity = c.getString("activity");
-
-                        // tmp hash map for single contact
-                        HashMap<String, String> contact = new HashMap<>();
-
-                        // adding eachild node to HashMap key => value
-                        contact.put("mac", mac);
-                        contact.put("type", type);
-                        contact.put("activity", activity);
-
-                        // adding contact to contact list
-                        GridPoints.add(contact);
-                    }
-                } catch (final JSONException e) {
-                    Log.e(TAG, "Json parsing error: " + e.getMessage());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(),
-                                    "Json parsing error: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-
-                }
-
-            } else {
-                Log.e(TAG, "Couldn't get json from server.");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
+        protected void onPostExecute(List<String> result) {
             super.onPostExecute(result);
-
+            //get the spinner from the xml.
+            //create an adapter to describe how the items are displayed, adapters are used in several places in android.
+            //There are multiple variations of this, but this is the basic variant.
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, result);
+            //set the spinners adapter to the previously created one.
+            spinner.setAdapter(adapter);
+            //adapter spinner
         }
     }
 
-    private class FetchData extends AsyncTask<Void, Void, String> {
+    private class getAPData extends AsyncTask<Void, Void, List<String>>{
 
         @Override
-        protected String doInBackground(Void... params) {
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            // Will contain the raw JSON response as a string.
-            String forecastJsonStr = null;
-
-            try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-                //https://www.salzburg.gv.at/ogd/c8711f5c-a49f-446d-ad69-6435bbc5a78e/names-szg.json
-                //http://192.168.0.101:9000/api/getAccesPoints
-                URL url = new URL("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:STATIONENOGD&srsName=EPSG:4326&outputFormat=json");
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                forecastJsonStr = buffer.toString();
-                return forecastJsonStr;
-            } catch (IOException e) {
-                Log.e("PlaceholderFragment", "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
-            }
+        protected List<String> doInBackground(Void... voids) {
+            APIHelper api = new APIHelper();
+            return api.getAccessPoints();
+            //filter here
         }
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            Log.i("json", s);
+        protected void onPostExecute(List<String> result) {
+            super.onPostExecute(result);
+            //adapter list
         }
     }
-
 }
-*/
