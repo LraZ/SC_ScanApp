@@ -90,8 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject postData = new JSONObject();
                 try{
                     //postData.put("name", name.getText().toString());
-
-                    postData.put("destination", spinner.getSelectedItemId()+1);
+                    postData.put("destination", String.valueOf(spinner.getSelectedItemId()+1));
                     JSONArray arr = generateJSONArray(APs);
                     postData.put("ReceivedSignals", arr);
                     JSONString = postData.toString();
@@ -129,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
             for (AccessPoint AP : ListAP){
                 JSONObject postData = new JSONObject();
                 postData.put("mac", AP.getMAC());
-                postData.put("power", AP.getSignal());
+                postData.put("power", String.valueOf(AP.getSignal()));
                 temp.put(postData);
             }
         } catch (JSONException e) {
