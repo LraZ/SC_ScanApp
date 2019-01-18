@@ -37,7 +37,7 @@ public class APIHelper{
 
     public List<GridPoint> getGridPoints(){
         tempGPList = new LinkedList<GridPoint>();
-        String URL = "http://192.168.0.233:9000/api/getAllGridPoints";
+        String URL = "http://10.202.233.106:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -82,7 +82,7 @@ public class APIHelper{
 
     public List<AccessPoint> getAccessPoints(){
         tempAPList = new LinkedList<AccessPoint>();
-        String URL = "http://192.168.0.233:9000/api/getAllAccessPoints";
+        String URL = "http://10.202.233.106:9000/api/getAllAccessPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -123,22 +123,23 @@ public class APIHelper{
 
     public String sendData(String JSONstring) {
         String data = "";
-        String URL = "http://192.168.0.233:9000/api/getPosition";
+        String URL = "http://10.202.233.106:9000/api/getPosition";
         try{
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.connect();
 
 
-            JSONstring = "{\"destination\": \"1\", \"ReceivedSignals\":[" +
+            JSONstring = "{\"destination\": 1, \"ReceivedSignals\":[" +
                     "{\"mac\": \"84:78:ac:b8:bb:b0\",\"power\": \"81\"" +
                     "},{\"mac\": \"84:78:ac:b8:d4:80\",\"power\": \"83\"}," +
                     "{\"mac\": \"84:78:ac:b8:e2:f0\",\"power\": \"20\"" + "}]}";
 
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-            wr.writeBytes("Data=" + JSONstring);
+            wr.writeBytes(JSONstring);
             wr.flush();
             wr.close();
 

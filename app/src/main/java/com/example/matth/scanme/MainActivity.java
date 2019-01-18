@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter wifi_adapter;
 
     private List<AccessPoint> APs = new LinkedList<>();
+    private List<AccessPoint> registeredAPs = new LinkedList<>();
 
     private String JSONString;
 
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        new getAPData().execute();
         new getGridData().execute();
         SaveMeButton = (Button) findViewById(R.id.saveToDB_button);
         SaveMeButton.setOnClickListener(new View.OnClickListener() {
@@ -84,11 +86,11 @@ public class MainActivity extends AppCompatActivity {
                 arrayList.clear();
                 scanWifi();
                 bluetoothScanning();
-                new getAPData().execute();
 
                 JSONObject postData = new JSONObject();
                 try{
                     //postData.put("name", name.getText().toString());
+
                     postData.put("destination", spinner.getSelectedItemId()+1);
                     JSONArray arr = generateJSONArray(APs);
                     postData.put("ReceivedSignals", arr);
@@ -111,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "WiFi is disabled ... We need to enable it", Toast.LENGTH_LONG).show();
             wifiManager.setWifiEnabled(true); //
         }
-        //GridPoints = getService.getGridPoints();
-        //new getGridData().execute();
+
+
 
         wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
         listView.setAdapter(wifi_adapter);
@@ -164,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         //arrayList.clear();
         registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         wifiManager.startScan();
-        Toast.makeText(this, "Scanning WiFi ...", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Scanning WiFi ...", Toast.LENGTH_SHORT).show();
     }
 
     BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
@@ -174,41 +176,29 @@ public class MainActivity extends AppCompatActivity {
             //https://androidforums.com/threads/wifimanager-getscanresults-always-returns-empty-list.1266068/
             //need to enable permission to access localization service
             for (ScanResult scanResult : results) {
-                //if(filterAP(scanResult.BSSID)){
-                APs.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level));
-                arrayList.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level).toString());
-                //}
+                if(filterAP(scanResult.BSSID)){
+                    APs.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level));
+                    arrayList.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level).toString());
+                }
                 wifi_adapter.notifyDataSetChanged();
             }
             unregisterReceiver(this);
         }
     };
 
-    //APScanner Signavio
-    /*
-    filter registered APs in database
-    private boolean filterAP(String BSSID, List<AccessPoint> registeredAPs){
-        //Logic, compare BSSID string to MAC-adresses in our List of registeredAP (get APs from database)
-        for(List<AccessPoint> filtered : registeredAPs){
-            if(filtered.getMAC().equals(BSSID)){
+
+    private boolean filterAP(String mac){
+        for(AccessPoint filtered : registeredAPs){
+            if(filtered.getMAC().equals(mac)){
                 return true;
             }
             else {
                 return false;
             }
         }
+        return false;
     }
-    */
 
-    //hardcoded method for testing
-    private boolean filterAP(String BSSID) {
-
-        if (BSSID.equals("1c:e6:c7:1d:6e:34")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     private class getGridData extends AsyncTask<Void, Void, List<GridPoint>>{
 
@@ -236,16 +226,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected List<AccessPoint> doInBackground(Void... voids) {
             APIHelper api = new APIHelper();
-            return api.getAccessPoints();
+            registeredAPs = api.getAccessPoints();
+            return registeredAPs;
             //filter here
         }
 
         protected void onPostExecute(List<AccessPoint> result) {
             super.onPostExecute(result);
-            //APs = result;
-
-
-            //Toast.makeText(this, APs.size()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -261,6 +248,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             Log.e("TAG", result);
+            Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
+
+            //update spinner
         }
     }
 }
