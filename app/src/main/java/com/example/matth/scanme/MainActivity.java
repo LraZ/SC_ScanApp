@@ -181,8 +181,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             results = wifiManager.getScanResults();
-            //https://androidforums.com/threads/wifimanager-getscanresults-always-returns-empty-list.1266068/
-            //need to enable permission to access localization service
             for (ScanResult scanResult : results) {
                 if(filterAP(scanResult.BSSID)){
                     APs.add(new AccessPoint(scanResult.BSSID, 0, true, scanResult.SSID, scanResult.level));
@@ -194,14 +192,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     private boolean filterAP(String mac){
         for(AccessPoint filtered : registeredAPs){
             return (filtered.getMAC().equals(mac));
         }
         return false;
     }
-
 
     private class getGridData extends AsyncTask<Void, Void, List<GridPoint>>{
 
@@ -213,14 +209,9 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(List<GridPoint> result) {
             super.onPostExecute(result);
-            //parse object to string
-            //for (GridPoint GridPoint : result){
-            //    spinnerArray.add(GridPoint);
-            //}
             ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, result);
             //set the spinners adapter to the previously created one.
             spinner.setAdapter(adapter);
-            //adapter spinner
         }
     }
 
@@ -231,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
             APIHelper api = new APIHelper();
             registeredAPs = api.getAccessPoints();
             return registeredAPs;
-            //filter here
         }
 
         protected void onPostExecute(List<AccessPoint> result) {
