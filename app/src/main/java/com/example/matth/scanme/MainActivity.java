@@ -109,11 +109,12 @@ public class MainActivity extends AppCompatActivity {
             wifiManager.setWifiEnabled(true); //
         }
 
+        scanWifi();
+        bluetoothScanning();
+
         wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
         listView.setAdapter(wifi_adapter);
 
-        scanWifi();
-        bluetoothScanning();
     }
 
     private JSONArray generateJSONArray(List<AccessPoint> ListAP) {
