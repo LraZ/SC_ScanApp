@@ -37,7 +37,7 @@ public class APIHelper{
 
     public List<GridPoint> getGridPoints(){
         tempGPList = new LinkedList<GridPoint>();
-        String URL = "http://10.202.233.106:9000/api/getAllGridPoints";
+        String URL = "http://192.168.0.241:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -49,24 +49,10 @@ public class APIHelper{
                 for (int i = 0; i < data.length(); i++) {
                     JSONObject d = data.getJSONObject(i);
                     String id = d.getString("id");
+                    //int posX = d.getInt("posX");
+                    //int posY = d.getInt("posY");
                     tempGP = new GridPoint(id);
-                    //String posX = d.getString("posX");
-                    //String posY = d.getString("posY");
-                    //tempGP.setId(d.getString("Id"));
-                    //tempGP.setPosX(d.getInt("PosX"));
-                    //tempGP.setPosY(d.getInt("PosY"));
 
-                    // tmp hash map for single contact
-                    HashMap<String, String> DataHashMap = new HashMap<>();
-
-                    // adding each child node to HashMap key => value
-                    DataHashMap.put("id", String.valueOf(id));
-                    //DataHashMap.put("posX", posX);
-                    //DataHashMap.put("posY", posY);
-
-                    // adding contact to contact list
-                    //resultList.add(DataHashMap);
-                    String temptext = "Grid Point ID: " + id;
                     tempGPList.add(tempGP);
                 }
             } catch (final JSONException e) {
@@ -82,7 +68,7 @@ public class APIHelper{
 
     public List<AccessPoint> getAccessPoints(){
         tempAPList = new LinkedList<AccessPoint>();
-        String URL = "http://10.202.233.106:9000/api/getAllAccessPoints";
+        String URL = "http://192.168.0.241:9000/api/getAllAccessPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -98,16 +84,6 @@ public class APIHelper{
                     Boolean activity = d.getBoolean("activity");
                     tempAP = new AccessPoint(mac,type,activity);
 
-                    // tmp hash map for single contact
-                    HashMap<String, String> DataHashMap = new HashMap<>();
-
-                    // adding each child node to HashMap key => value
-                    DataHashMap.put("mac", mac);
-                    DataHashMap.put("type", String.valueOf(type));
-                    DataHashMap.put("activity", String.valueOf(activity));
-
-                    // adding contact to contact list
-                    //resultList.add(DataHashMap);
                     tempAPList.add(tempAP);
                 }
             } catch (final JSONException e) {
@@ -123,7 +99,7 @@ public class APIHelper{
 
     public String sendData(String JSONstring) {
         String data = "";
-        String URL = "http://10.202.233.106:9000/api/getPosition";
+        String URL = "http://192.168.0.241:9000/api/updateGridAccessPoint";
         try{
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -131,12 +107,6 @@ public class APIHelper{
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.connect();
-
-
-            JSONstring = "{\"destination\": 1, \"ReceivedSignals\":[" +
-                    "{\"mac\": \"84:78:ac:b8:bb:b0\",\"power\": \"81\"" +
-                    "},{\"mac\": \"84:78:ac:b8:d4:80\",\"power\": \"83\"}," +
-                    "{\"mac\": \"84:78:ac:b8:e2:f0\",\"power\": \"20\"" + "}]}";
 
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
             wr.writeBytes(JSONstring);

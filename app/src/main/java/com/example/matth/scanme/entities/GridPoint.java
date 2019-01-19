@@ -12,9 +12,7 @@ public class GridPoint {
 
     private List<AccessPoint> APs;
 
-    public GridPoint(){
-
-    }
+    public GridPoint(){ }
 
     public GridPoint(String id){
         this.Id = id;

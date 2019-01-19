@@ -52,24 +52,19 @@ public class MainActivity extends AppCompatActivity {
     private Button SaveMeButton;
     private ListView listView;
     private Spinner spinner;
-    private List<String> spinnerArray = new LinkedList<String>();
 
     private WifiManager wifiManager;
     private List<ScanResult> results;
     private ArrayList<String> arrayList = new ArrayList<>();
     private ArrayAdapter wifi_adapter;
-
     private List<AccessPoint> APs = new LinkedList<>();
     private List<AccessPoint> registeredAPs = new LinkedList<>();
 
     private String JSONString;
 
     private BluetoothAdapter BTAdapter;
-    //set to identify the activity request
     public static int REQUEST_BLUETOOTH = 1;
     private ArrayList<DeviceItem> deviceItemList;
-    //private BroadcastReceiver mReceiver;
-    //private final BroadcastReceiver mReceiver;
     private BluetoothAdapter mBluetoothAdapter;
 
     @Override
@@ -90,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject postData = new JSONObject();
                 try{
                     //postData.put("name", name.getText().toString());
-                    postData.put("destination", String.valueOf(spinner.getSelectedItemId()+1));
+                    GridPoint selectedGridPoint = (GridPoint) spinner.getSelectedItem();
+                    postData.put("destination", selectedGridPoint.getId());
                     JSONArray arr = generateJSONArray(APs);
                     postData.put("ReceivedSignals", arr);
                     JSONString = postData.toString();
@@ -113,8 +109,6 @@ public class MainActivity extends AppCompatActivity {
             wifiManager.setWifiEnabled(true); //
         }
 
-
-
         wifi_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, arrayList);
         listView.setAdapter(wifi_adapter);
 
@@ -124,6 +118,20 @@ public class MainActivity extends AppCompatActivity {
 
     private JSONArray generateJSONArray(List<AccessPoint> ListAP) {
         JSONArray temp = new JSONArray();
+        /* test-data
+        try{
+            JSONObject postData = new JSONObject();
+            postData.put("mac", "84:78:ac:b8:bb:b0");
+            postData.put("power", "80");
+            temp.put(postData);
+            JSONObject postData1 = new JSONObject();
+            postData1.put("mac", "84:78:ac:b8:d4:80");
+            postData1.put("power", "70");
+            temp.put(postData1);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        */
         try{
             for (AccessPoint AP : ListAP){
                 JSONObject postData = new JSONObject();
@@ -188,12 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean filterAP(String mac){
         for(AccessPoint filtered : registeredAPs){
-            if(filtered.getMAC().equals(mac)){
-                return true;
-            }
-            else {
-                return false;
-            }
+            return (filtered.getMAC().equals(mac));
         }
         return false;
     }
@@ -210,10 +213,10 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<GridPoint> result) {
             super.onPostExecute(result);
             //parse object to string
-            for (GridPoint GridPoint : result){
-                spinnerArray.add(GridPoint.toString());
-            }
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, spinnerArray);
+            //for (GridPoint GridPoint : result){
+            //    spinnerArray.add(GridPoint);
+            //}
+            ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, result);
             //set the spinners adapter to the previously created one.
             spinner.setAdapter(adapter);
             //adapter spinner
@@ -247,9 +250,10 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             Log.e("TAG", result);
+            //GridPoint tempGP = (GridPoint) spinner.getSelectedItem();
+            //String tempGPString = tempGP.toString() + " assigned";
             Toast.makeText(getApplicationContext(), "success", Toast.LENGTH_SHORT).show();
-
-            //update spinner
+            //add new adapter to updates object in spinnerlist
         }
     }
 }
