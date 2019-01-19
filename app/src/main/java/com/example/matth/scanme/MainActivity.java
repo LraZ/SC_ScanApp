@@ -194,7 +194,9 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean filterAP(String mac){
         for(AccessPoint filtered : registeredAPs){
-            return (filtered.getMAC().equals(mac));
+            if((filtered.getMAC().equals(mac))){
+                return true;
+            }
         }
         return false;
     }
