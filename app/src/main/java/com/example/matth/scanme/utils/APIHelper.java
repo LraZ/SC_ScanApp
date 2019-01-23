@@ -37,7 +37,9 @@ public class APIHelper{
 
     public List<GridPoint> getGridPoints(){
         tempGPList = new LinkedList<GridPoint>();
-        String URL = "http://192.168.0.241:9000/api/getAllGridPoints";
+        //FH IP
+        String URL = "http://10.202.233.106:9000/api/getAllGridPoints";
+        //String URL = "http://192.168.0.241:9000/api/getAllGridPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -68,7 +70,9 @@ public class APIHelper{
 
     public List<AccessPoint> getAccessPoints(){
         tempAPList = new LinkedList<AccessPoint>();
-        String URL = "http://192.168.0.241:9000/api/getAllAccessPoints";
+        //FH IP
+        String URL = "http://10.202.233.106:9000/api/getAllAccessPoints";
+        //String URL = "http://192.168.0.241:9000/api/getAllAccessPoints";
         String jsonStr = makeServiceCall(URL);
 
         if (jsonStr!=null){
@@ -99,7 +103,9 @@ public class APIHelper{
 
     public String sendData(String JSONstring) {
         String data = "";
-        String URL = "http://192.168.0.241:9000/api/updateGridAccessPoint";
+        //FH IP
+        String URL = "http://10.202.233.106:9000/api/updateGridAccessPoint";
+        //String URL = "http://192.168.0.241:9000/api/updateGridAccessPoint";
         try{
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListAdapter;
@@ -78,9 +79,8 @@ public class MainActivity extends AppCompatActivity {
         SaveMeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                arrayList.clear();
-                scanWifi();
-                bluetoothScanning();
+                //scanWifi();
+                //bluetoothScanning();
 
                 JSONObject postData = new JSONObject();
                 try{
@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONString = postData.toString();
 
                     new SendGPtoAPs().execute();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -102,6 +103,25 @@ public class MainActivity extends AppCompatActivity {
 
         listView = findViewById(R.id.wifi_List);
         spinner = (Spinner) findViewById(R.id.location_spinner);
+
+
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                APs.clear();
+                arrayList.clear();
+                scanWifi();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+
+            }
+
+        });
+
+
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         if (!wifiManager.isWifiEnabled()) {
@@ -242,6 +262,8 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+            //arrayList.clear();
+            APs.clear();
             Log.e("TAG", result);
             //GridPoint tempGP = (GridPoint) spinner.getSelectedItem();
             //String tempGPString = tempGP.toString() + " assigned";
